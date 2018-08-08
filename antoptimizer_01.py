@@ -20,17 +20,14 @@ class AntOptimizer:
 
     def __init__(self, problemname, ro = 0.5, alpha = 1., beta = 1.5, maxiterations = 100, antnumber = 20, solution = 'False'):
         self.pro = Problem(problemname, ro, alpha, beta)
-        self.pro.currentbest = self.pro.initguess()
         self.pro.antsinit(antnumber)
-        self.maxit = maxiterations+1
+        self.maxit = maxiterations+1 # for initial guess
         if solution:
             self.solutiontour, self.solutionlength = self.getsolution()
         self.bestvalues = np.zeros(self.maxit)
         self.besttour = np.zeros(self.pro.size)
+        self.alltours = np.zeros((maxiterations//4+1, self.pro.size)) # to save tour every 4th iteration
         self.bestsamples = np.zeros(self.maxit)
-        self.alltours = []
-        self.globalbesttour = np.zeros(self.pro.size)
-        self.globalbestvalue = self.pro.currentbest
         print('\nAnt colony optimization for Travelling Salesman problem: ', self.pro.name, ' with ', antnumber, ' ants')
 
     # get path and length of known solution
@@ -45,11 +42,11 @@ class AntOptimizer:
         # in each iteration, all ants find a solution, the problem gets updated, 
         # the best solution and it's length are stored
     def optimization(self):
-        
+        self.pro.currentbest = self.pro.initguess()
         self.bestvalues[0] = self.pro.currentbest
-        self.alltours.append(self.pro.greedytour)
-        print('initial guess: ', self.pro.currentbest)
-        for iteration in range(1,self.maxit):
+        self.alltours[0,:] = self.pro.greedytour
+        print('\ninitial guess: ', self.pro.currentbest)
+        for iteration in range(1, self.maxit):
             #print('\n_______________________ iteration:', iteration, '____________________________\n')
 
             for index, ant in enumerate(self.pro.ants):
@@ -61,30 +58,32 @@ class AntOptimizer:
             self.pro.weigh()
             
             self.bestvalues[iteration] = self.pro.currentbest
+            
             self.besttour = np.copy(self.pro.bestant.tour)
-            self.alltours.append(self.besttour)
-            #print('current best: ', self.pro.currentbest)
+            print(self.besttour)
+            i = 1
+            #if iteration > self.maxit/4*3:
+            if iteration%4 == 0:
+                self.alltours[i,:] = np.copy(self.besttour)
+                i+=1
+            #print(self.besttour)
+            print('current best: ', self.pro.currentbest)
             #print('best tour by: ', self.pro.bestant)
         
             for ant in self.pro.ants:
                 ant.reset()
         
-        print('\nsolution found: ', self.pro.currentbest)
-        print('found best tour: ', self.besttour)
-        print('\nknown solution: ' , self.solutionlength)
-        print('known best tour: ', self.solutiontour)
+        # print('\nsolution found: ', self.pro.currentbest)
+        # print('found best tour: ', self.besttour)
+        # print('\nknown solution: ' , self.solutionlength)
+        # print('known best tour: ', self.solutiontour)
         
     # does (samples) repetitions of the optimization process to get statistics            
     def optsamples(self, samples = 500):
         self.bestsamples = np.zeros((self.maxit, samples))
         for s in range(samples):
-            self.pro.reset()
             self.optimization()
             self.bestsamples[:,s] = np.copy(self.bestvalues)
-            #print('best: ', self.pro.currentbest)
-            if self.pro.currentbest < self.globalbestvalue:
-                self.globalbestvalue = self.pro.currentbest
-                self.globalbesttour = self.besttour
-                print('global best: ', self.globalbestvalue)   
-        
+            self.pro.reset()           
+            
         return np.mean(self.bestsamples, axis = 1)

@@ -1,4 +1,5 @@
 # %load ../project/ant.py
+# %load ../project/ant.py
 #!/usr/bin/env python3
 
 
@@ -81,23 +82,20 @@ class Ant:
 
     # naivewalk as nearest neighbour tour: greedy solution
     def naivewalk(self, distmatrix):
-        dist = distmatrix.astype(float)
-        dist[np.where(dist == 0)] = np.inf
-        dist[:,0] = np.inf
         self.tour = np.zeros(self.size, 'i4')
         self.tourlength = 0
         self.tour[0] = 0
         i = 0
         for j in range(1, self.size):
-            choice = dist[self.tour[i],:]
-            #print('choices: ', choice)
-            self.tour[j] = np.argmin((choice[np.nonzero(choice)]))
-            #print(self.tour[j]) # choose shortest distance greedily
+            m = np.isin(np.arange(self.size), self.tour) # mask elements already visited
+            #print('m: ', m)
+            choice = np.ma.masked_array(distmatrix[i,:], m) # array of possible choices 
+            #print(choice)
+            self.tour[j] = np.argmin(choice) # choose shortest distance greedily
             self.tourlength += distmatrix[i,j]
             i = j
-            dist[:,self.tour[j]] = np.inf
         self.tourlength += distmatrix[j, 0]
-        print('naive tour: ', self.tour, '\nlength: ', self.tourlength)
+        # print('naive tour: ', self.tour)
         return self.tourlength
     
     # reset the ant's attributes to initial values for the next iteration
