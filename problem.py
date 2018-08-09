@@ -112,10 +112,12 @@ class Problem:
     def readsol(self):
         path = os.getcwd()
         solutionname = self.name + '.opt.tour'
-        solution = np.genfromtxt(path + '/ALL_tsp/' + solutionname,  
+        solut = np.genfromtxt(path + '/ALL_tsp/' + solutionname,  
                                  skip_header = self.getheader(path + '/ALL_tsp/' + solutionname, 'TOUR_SECTION'), 
                                  skip_footer = 2, 
                                  dtype = 'i4')
+        solut.reshape(1, solut.size)
+        solution = solut[np.where(solut!=0)]
         solution -=1
         return solution
     

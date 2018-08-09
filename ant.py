@@ -97,7 +97,7 @@ class Ant:
             i = j
             dist[:,self.tour[j]] = np.inf
         self.tourlength += distmatrix[j, 0]
-        print('naive tour: ', self.tour, '\nlength: ', self.tourlength)
+        #print('naive tour: ', self.tour, '\nlength: ', self.tourlength)
         return self.tourlength
     
     # reset the ant's attributes to initial values for the next iteration
